@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Roast My SaaS
 
-## Getting Started
+A free, no-signup landing-page reviewer that turns a SaaS URL into a witty conversion audit, five calibrated scores, three priority fixes, and a downloadable social card. Founders can explicitly opt into a Neon-backed **Hall of Shame**; nothing is published without that click.
 
-First, run the development server:
+## Stack
+
+Next.js App Router, TypeScript, Tailwind CSS, OpenAI structured outputs, Zod, Cheerio, Lucide, html-to-image, and Neon Postgres.
+
+## Local setup
 
 ```bash
+npm install
+cp .env.example .env
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Add an OpenAI API key to use the roast flow and a Neon connection string as `DATABASE_URL`. Apply the single leaderboard table with:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run db:migrate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The migration source is [`db/schema.sql`](db/schema.sql). `DATABASE_URL` is server-only.
 
-## Learn More
+## How analysis works
 
-To learn more about Next.js, take a look at the following resources:
+`POST /api/roast` normalizes and validates the URL, rejects private/internal destinations, resolves DNS, follows at most three validated redirects, limits time and response size, extracts a bounded set of visible copy, and sends only that structured context to OpenAI. The AI response is schema-validated before it reaches the UI.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The in-memory rate limit is intentionally lightweight for V1. Use a shared edge/Redis limiter for multi-instance production deployments. DNS rebinding defenses in application code reduce risk, but production egress controls remain recommended for any public URL fetcher.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy
 
-## Deploy on Vercel
+Set the variables from `.env.example` in your hosting platform and run `npm run build`. Public roasts require Neon; private results remain stateless.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## V1 boundaries
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+No accounts, email collection, saved private history, SEO/performance audit, or Hall of Fame. Sites that require JavaScript to render all meaningful copy may provide too little server-visible content to analyze.
