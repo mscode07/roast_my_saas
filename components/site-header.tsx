@@ -14,8 +14,15 @@ export function SiteHeader() {
         <em>MY SAAS</em>
       </Link>
       <nav aria-label="Main navigation">
-        <a className="x-follow-nav" href="https://x.com/mscode" target="_blank" rel="noreferrer" aria-label="Follow mscode on X">
-          <span aria-hidden>𝕏</span><b>@mscode</b>
+        <a
+          className="x-follow-nav"
+          href="https://x.com/mscode07"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Follow mscode07 on X"
+        >
+          <span aria-hidden>𝕏</span>
+          <b>@mscode07</b>
         </a>
         <Link href="/hall-of-shame" className="hall-nav">
           <span className="hall-nav-icon" aria-hidden>
