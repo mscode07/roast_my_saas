@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -26,6 +27,18 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-0GJ8NFGXG9"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-0GJ8NFGXG9');
+          `}
+        </Script>
         {children}
         <footer className="site-footer">
           © {new Date().getFullYear()} Roast My SaaS · Roast the page, not the
