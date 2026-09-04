@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FounderHandle } from "@/components/founder-handle";
 import { useMemo, useState } from "react";
 import { ArrowUpRight, Flame, Skull, Trophy } from "lucide-react";
 import { getRoastModeLabel, type RoastResult } from "@/types/roast";
@@ -133,6 +134,7 @@ export function HallPreview({
               </span>
               <div className="hall-site">
                 <strong>{roast.website.domain}</strong>
+                <FounderHandle roast={roast} />
                 <small>
                   {getRoastModeLabel(roast.roastMode).toUpperCase()}{" "}
                   <Flame fill="currentColor" />

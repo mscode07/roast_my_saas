@@ -2,6 +2,7 @@
 import { Brain, Crosshair, Diamond, Flame, MousePointer2, ShieldCheck } from "lucide-react";
 import { getRoastModeLabel, type RoastResult } from "@/types/roast";
 import { ShareCard } from "@/components/share-card";
+import { FounderHandle } from "@/components/founder-handle";
 
 const meta = [
   ['clarity','Clarity',Brain],['targetAudience','Audience',Crosshair],['valueProposition','Value',Diamond],['trust','Trust',ShieldCheck],['cta','CTA',MousePointer2],
@@ -10,6 +11,7 @@ const meta = [
 export function RoastReport({ roast, onPublished }: { roast: RoastResult; onPublished: (r: RoastResult) => void }) {
   return <section id="roast-result" className="result-shell shell">
     <main className="report">
+      <FounderHandle roast={roast} />
       <header className="report-top"><div><h2>{roast.website.name}</h2><p>Roasted in <b>{getRoastModeLabel(roast.roastMode).toUpperCase()}</b> mode</p></div><span className="stamp">ROASTED<br/><small>{roast.createdAt ? new Date(roast.createdAt).toLocaleDateString() : 'TODAY'}</small></span></header>
       <div className="score-overview"><div className="big-score"><span>ROAST SCORE</span><strong>{roast.overallScore}<small>/100</small></strong><p>{roast.verdict}</p></div><div className="score-list">{meta.map(([key,label,Icon]) => { const score = roast.categories[key].score; return <div key={key}><Icon size={19}/><span>{label}</span><i><b style={{width:`${score * 10}%`}}/></i><strong>{score}/10</strong></div>})}</div></div>
       <h3 className="section-title"><Flame size={22} fill="currentColor"/> THE ROAST <small>← the good, the bad, the oof</small></h3>
