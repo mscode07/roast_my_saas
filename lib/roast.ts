@@ -10,7 +10,7 @@ export async function generateRoast(context: WebsiteContext, roastMode: RoastMod
   const response = await openai.responses.parse({
     model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
     input: [{ role: 'system', content: buildRoastPrompt(context, roastMode) }],
-    text: { format: zodTextFormat(roastResultSchema.omit({ id: true, createdAt: true }), 'roast_result') },
+    text: { format: zodTextFormat(roastResultSchema.omit({ id: true, createdAt: true, attribution: true }), 'roast_result') },
   });
   if (!response.output_parsed) throw new Error('The roasting department returned an empty tray.');
   const url = new URL(context.url);
@@ -19,4 +19,3 @@ export async function generateRoast(context: WebsiteContext, roastMode: RoastMod
     website: { ...response.output_parsed.website, url: context.url, domain: url.hostname.replace(/^www\./, '') },
   });
 }
-

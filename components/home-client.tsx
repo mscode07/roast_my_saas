@@ -38,7 +38,7 @@ export function HomeClient() {
             <br />
             your landing page brutally (but helpfully)
           </p>
-          <RoastForm onResult={setResult} />
+          <RoastForm onResult={(roast) => setResult({ ...roast, createdAt: new Date().toISOString() })} />
         </div>
         <div className="mascot" aria-hidden="true">
           <div className="fire">♨</div>
@@ -78,7 +78,7 @@ export function HomeClient() {
           ))}
         </div>
       </div>
-      {result && <RoastReport roast={result} onPublished={setResult} />}
+      {result && <RoastReport key={`${result.website.url}-${result.createdAt ?? "draft"}`} roast={result} onPublished={setResult} />}
       <section id="about" className="about shell">
         <Flame />
         <p>

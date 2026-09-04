@@ -124,7 +124,9 @@ export default async function Image({
           }}
         >
           <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: 2 }}>
-            LANDING PAGE UNDER REVIEW
+            {roast.attribution?.taggingConsent
+              ? `Submitted by @${roast.attribution.xHandle}`
+              : "LANDING PAGE UNDER REVIEW"}
           </span>
           <div
             style={{

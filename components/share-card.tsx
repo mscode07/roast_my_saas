@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { Check, Copy, Image as ImageIcon, Share2, Skull } from "lucide-react";
 import { toPng } from "html-to-image";
-import { getRoastModeLabel, type RoastResult } from "@/types/roast";
+import { getRoastModeLabel, roastResultSchema, type RoastResult } from "@/types/roast";
+import { FounderHandle } from "@/components/founder-handle";
 
 type Score = [string, number];
 
@@ -20,6 +21,20 @@ export function ShareCard({
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
   const [shareNote, setShareNote] = useState("");
+  const [xHandle, setXHandle] = useState(roast.attribution?.xHandle ?? "");
+  const [taggingConsent, setTaggingConsent] = useState(false);
+  const [handleError, setHandleError] = useState("");
+
+  function updateAttribution(handle: string, consent: boolean) {
+    setXHandle(handle);
+    setTaggingConsent(consent);
+    setHandleError("");
+    const parsed = roastResultSchema.shape.attribution.safeParse(
+      consent && handle.trim() ? { xHandle: handle, taggingConsent: true } : undefined,
+    );
+    if (!parsed.success) setHandleError("Use 1–15 letters, numbers, or underscores, with an optional @.");
+    onPublished({ ...roast, attribution: parsed.success ? parsed.data : undefined });
+  }
   const scores: Score[] = [
     ["Clarity", roast.categories.clarity.score],
     ["Audience", roast.categories.targetAudience.score],
@@ -33,7 +48,7 @@ export function ShareCard({
       : window.location.origin;
   const publicUrl = roast.id ? `${origin}/roast/${roast.id}` : origin;
   const shareText = (url: string) =>
-    `I let Roast My SaaS judge my landing page 🔥\n\nScore: ${roast.overallScore}/100\n\n“${roast.shareQuote}”\n\nThink your SaaS can survive?\n${url}`;
+    `I let Roast My SaaS judge my landing page 🔥${roast.attribution?.taggingConsent ? `\nSubmitted by @${roast.attribution.xHandle}` : ""}\n\nScore: ${roast.overallScore}/100\n\n“${roast.shareQuote}”\n\nThink your SaaS can survive?\n${url}`;
 
   async function renderCard() {
     if (!ref.current) throw new Error("Card is not ready yet.");
@@ -56,7 +71,7 @@ export function ShareCard({
 
   async function copy() {
     await navigator.clipboard.writeText(
-      `🔥 Roast My SaaS\n\n${roast.website.domain} — ${roast.overallScore}/100\n\n${scores.map(([name, score]) => `${name}: ${score}/10`).join("\n")}\n\n“${roast.shareQuote}”\n\n${publicUrl}`,
+      `🔥 Roast My SaaS\n\n${roast.website.domain} — ${roast.overallScore}/100${roast.attribution?.taggingConsent ? `\nSubmitted by @${roast.attribution.xHandle}` : ""}\n\n${scores.map(([name, score]) => `${name}: ${score}/10`).join("\n")}\n\n“${roast.shareQuote}”\n\n${publicUrl}`,
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -108,6 +123,10 @@ export function ShareCard({
   }
 
   async function publish(): Promise<RoastResult | null> {
+    if (handleError || (taggingConsent && !xHandle.trim())) {
+      setPublishError("Enter a valid X handle or uncheck tagging consent to publish without one.");
+      return null;
+    }
     setPublishing(true);
     setPublishError("");
     try {
@@ -135,6 +154,16 @@ export function ShareCard({
       <div className="share-heading">
         <Share2 size={20} /> SHARE YOUR ROAST
       </div>
+      {!roast.id && (
+        <fieldset className="founder-opt-in" disabled={publishing}>
+          <legend>MADE THIS? GET CREDIT.</legend>
+          <label htmlFor="founder-x-handle">Your X handle (optional)</label>
+          <input id="founder-x-handle" value={xHandle} placeholder="@yourhandle" autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-describedby="founder-handle-help founder-handle-error" aria-invalid={!!handleError} onChange={(event) => updateAttribution(event.target.value, taggingConsent)} />
+          <label className="founder-consent"><input type="checkbox" checked={taggingConsent} onChange={(event) => updateAttribution(xHandle, event.target.checked)} /><span>Show my handle publicly on the roast, leaderboard and images, and let Roast My SaaS tag me when sharing this roast on X.</span></label>
+          <p id="founder-handle-help">Use your own handle. Self-submitted, not verified. Skip this to stay anonymous; the handle is only saved when you opt in and publish.</p>
+          <p id="founder-handle-error" className="form-error" role="status">{handleError}</p>
+        </fieldset>
+      )}
       <div className="social-card" ref={ref}>
         <div className="card-noise" />
         <div className="card-topline">
@@ -154,6 +183,7 @@ export function ShareCard({
           <div className="card-copy">
             <small>LANDING PAGE UNDER REVIEW</small>
             <h3>{roast.website.domain}</h3>
+            <FounderHandle roast={roast} />
             <p>{roast.website.detectedProduct}</p>
             <blockquote>“{roast.shareQuote}”</blockquote>
             <span className="mode-label">

@@ -21,6 +21,11 @@ const categorySchema = z.object({
 });
 
 export const roastResultSchema = z.object({
+  attribution: z.object({
+    xHandle: z.string().trim().transform((value) => value.replace(/^@/, "")).pipe(z.string().regex(/^[A-Za-z0-9_]{1,15}$/, "Use 1–15 letters, numbers, or underscores.")),
+    taggingConsent: z.literal(true),
+    consentedAt: z.string().optional(),
+  }).optional(),
   id: z.string().optional(),
   roastMode: roastModeSchema,
   website: z.object({
