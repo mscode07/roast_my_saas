@@ -6,9 +6,14 @@ import { roastResultSchema, type RoastMode } from "@/types/roast";
 
 export async function generateRoast(context: WebsiteContext, roastMode: RoastMode) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY is not configured.');
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 40_000, maxRetries: 0 });
+  const model = process.env.OPENAI_MODEL ?? 'gpt-5-mini';
   const response = await openai.responses.parse({
-    model: process.env.OPENAI_MODEL ?? 'gpt-5-mini',
+    model,
+    // Original GPT-5 models support minimal reasoning; custom models keep their defaults.
+    ...(/^gpt-5(?:-mini|-nano)?(?:-\d{4}-\d{2}-\d{2})?$/.test(model)
+      ? { reasoning: { effort: 'minimal' as const } } : {}),
+    max_output_tokens: 4000,
     input: [{ role: 'system', content: buildRoastPrompt(context, roastMode) }],
     text: { format: zodTextFormat(roastResultSchema.omit({ id: true, createdAt: true, attribution: true }), 'roast_result') },
   });
