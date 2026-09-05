@@ -42,14 +42,21 @@ export function RoastForm({
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError("");
+    if (loading) return;
+    setMessage(0);
     setLoading(true);
     try {
       const response = await fetch("/api/roast", {
         method: "POST",
+        signal: AbortSignal.timeout(65_000),
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ url, roastMode: mode }),
       });
-      const json = await response.json();
+      const json = await response.json().catch(() => {
+        throw new Error(response.status === 504
+          ? "The roast took too long. Please try again."
+          : "The server could not finish your roast. Please try again shortly.");
+      });
       if (!response.ok || !json.success)
         throw new Error(json.error?.message ?? "The roast escaped. Try again.");
       onResult(json.data);
@@ -63,7 +70,11 @@ export function RoastForm({
     } catch (e) {
       setError(
         e instanceof Error
-          ? e.message
+          ? ["TimeoutError", "AbortError"].includes(e.name)
+            ? "The roast took too long. Please try again."
+            : e instanceof TypeError
+              ? "Could not connect. Check your connection and try again."
+              : e.message
           : "Our roasting department had a breakdown.",
       );
     } finally {
@@ -106,6 +117,7 @@ export function RoastForm({
           {modes.map(({ value, title, note, icon: Icon }) => (
             <button
               type="button"
+              disabled={loading}
               key={value}
               className={`mode ${mode === value ? "selected" : ""}`}
               onClick={() => setMode(value)}
